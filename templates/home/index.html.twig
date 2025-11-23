@@ -1,5 +1,48 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Coucou</h1>
+    <h1>Louez votre planche de surf !</h1>
+
+    <div>
+        <form method="post" action="{{ path('look_for_rent') }}">
+            <div>
+                <label for="start_date">Date de début</label>
+                <input id="start_date" type="date" name="start_date" />
+            </div>
+
+            <div>
+                <label for="end_date">Date de fin</label>
+                <input id="end_date" type="date" name="end_date" />
+            </div>
+
+            <input type="submit" value="Rechercher">
+        </form>
+    </div>
+
+    <div>
+        <h3>Tous nos modèles !</h3>
+
+        <section>
+            {% for data in models %}
+                {% set model = data.model %}
+                <div>
+                    <h5>{{ model.name }}</h5>
+                    <h6>
+                        à partir de <s>{{ data.origin_price }}</s> {{ data.price }} euros / jour
+                        {% if data.discount is not null %}
+                            (-{{ data.discount.percentage }}%)
+                        {% endif %}
+                    </h6>
+
+                    <p>{{ model.description }}</p>
+
+                    <a href="{{ path('view_product_model', {'modelSlug': model.slug}) }}">
+                        <button>
+                            Voir ce modèle
+                        </button>
+                    </a>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
 {% endblock body %}

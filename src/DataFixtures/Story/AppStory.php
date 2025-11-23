@@ -2,8 +2,11 @@
 
 namespace App\DataFixtures\Story;
 
+use App\DataFixtures\Factory\DiscountFactory;
 use App\DataFixtures\Factory\ProductFactory;
+use App\DataFixtures\Factory\ProductModelFactory;
 use App\DataFixtures\Factory\RentFactory;
+use App\DataFixtures\Factory\TagFactory;
 use App\DataFixtures\Factory\UserFactory;
 use Zenstruck\Foundry\Attribute\AsFixture;
 use Zenstruck\Foundry\Story;
@@ -15,8 +18,14 @@ final class AppStory extends Story
     {
         UserFactory::createMany(20);
 
-        ProductFactory::createMany(40);
+        TagFactory::createMany(10);
 
-        RentFactory::createMany(10);
+        ProductModelFactory::createMany(10);
+
+        ProductFactory::createMany(400);
+
+        RentFactory::createMany(50);
+
+        DiscountFactory::createMany(10);
     }
 }

@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>{{ model.name }}</h1>
+
+    <table>
+        <tr>
+            {% for tag in model.tags %}
+                <td>{{ tag.label }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+
+    <p>{{ model.description }}</p>
+
+    <div>
+        <p>
+            à partir de <s>{{ data.origin_price }}</s> {{ data.price }} euros / jour
+        </p>
+
+
+        <a href="{{ path('look_for_rent', {'modelSlug': model.slug}) }}">
+            <button type="button">
+                Louer ce modèle
+            </button>
+        </a>
+    </div>
+{% endblock body %}

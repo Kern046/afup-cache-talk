@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Entity\Product;
 
-use App\Entity\Product\Product;
-use App\Enum\RentStatus;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-class Rent
+class Product
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -21,17 +19,13 @@ class Rent
 
     public function __construct(
         #[ORM\ManyToOne]
-        public User $user,
-        #[ORM\ManyToOne]
-        public Product $product,
+        public ProductModel $model,
+        #[ORM\Column(type: 'enum')]
+        public ProductState $state,
         #[ORM\Column(type: 'datetime_immutable')]
-        public \DateTimeImmutable $startDate,
+        public \DateTimeImmutable $createdAt,
         #[ORM\Column(type: 'datetime_immutable')]
-        public \DateTimeImmutable $endDate,
-        #[ORM\Column(type: 'integer')]
-        public int $price,
-        #[ORM\Column(enumType: RentStatus::class, length: 48)]
-        public RentStatus $status,
+        public \DateTimeImmutable $updatedAt,
     ) {
     }
 }
