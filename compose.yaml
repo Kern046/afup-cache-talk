@@ -1,7 +1,15 @@
 
 services:
+  fpm:
+    container_name: cache_talk_fpm
+    build:
+      context: docker/fpm
+    volumes:
+        - ./:/srv/app
+
 ###> doctrine/doctrine-bundle ###
   database:
+    container_name: cache_talk_database
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
@@ -14,7 +22,29 @@ services:
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  caddy:
+    container_name: cache_talk_caddy
+    image: caddy
+    restart: unless-stopped
+    depends_on:
+      fpm:
+        condition: service_started
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - './docker/caddy/conf:/etc/caddy'
+      - './:/srv/app'
+      - './var/log/caddy/:/var/log/caddy'
+      - caddy_data:/data
+      - caddy_config:/config
+
 volumes:
+  caddy_data:
+  caddy_config:
 ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###
