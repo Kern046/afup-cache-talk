@@ -2,6 +2,11 @@
 services:
   fpm:
     container_name: cache_talk_fpm
+    cpu_count: 1
+    mem_limit: 100M
+    depends_on:
+      database:
+        condition: service_healthy
     build:
       context: docker/fpm
     volumes:
@@ -11,6 +16,12 @@ services:
   database:
     container_name: cache_talk_database
     image: postgres:${POSTGRES_VERSION:-16}-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "postgres"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       # You should definitely change the password in production
