@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Product\ProductModel;
-use App\Entity\Product\ProductState;
 use App\Repository\DiscountRepository;
-use App\Repository\ProductModelRepository;
 use App\Repository\ProductRepository;
 
-readonly class ProductModelDataService
+readonly class ProductModelDataService implements ProductModelDataServiceInterface
 {
     public function __construct(
-        private ProductRepository $productRepository,
-        private DiscountRepository $discountRepository,
+        protected ProductRepository $productRepository,
+        protected DiscountRepository $discountRepository,
     ) {
 
     }
