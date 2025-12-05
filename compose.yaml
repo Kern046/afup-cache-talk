@@ -3,7 +3,7 @@ services:
   fpm:
     container_name: cache_talk_fpm
     cpu_count: 1
-    mem_limit: 100M
+    mem_limit: 512M
     depends_on:
       database:
         condition: service_healthy
@@ -11,6 +11,7 @@ services:
       context: docker/fpm
     volumes:
         - ./:/srv/app
+        - ./docker/fpm/config/user_opcache.ini:/usr/local/etc/php/conf.d/user_opcache.ini:ro
 
 ###> doctrine/doctrine-bundle ###
   database:
@@ -42,6 +43,10 @@ services:
         condition: service_started
     cap_add:
       - NET_ADMIN
+    networks:
+      default:
+        aliases:
+          - store.local
     ports:
       - "80:80"
       - "443:443"
@@ -53,9 +58,57 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Prometheus UI available at localhost:9090
+    volumes:
+      - ./docker/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml # Custom config
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle' # Allows config reloads without restart
+      - '--web.enable-remote-write-receiver' # Enables remote write endpoint for k6
+
+  # Grafana for dashboarding and visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000" # Grafana UI available at localhost:3001
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Default admin password
+    volumes:
+      - grafana-storage:/var/lib/grafana # Persistent storage for Grafana data
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards # Pre-provisioned dashboards
+    depends_on:
+      - prometheus # Waits for Prometheus to be ready
+
+  # k6 load testing tool with Prometheus remote write output
+  k6:
+    container_name: cache_talk_k6
+    image: grafana/k6:latest
+    volumes:
+      - ./docker/k6/scripts:/scripts
+    ports:
+      - "6565:6565"
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write # Prometheus remote write endpoint
+      - K6_PROMETHEUS_RW_TREND_STATS=p(95),p(99),min,max # Custom trend stats
+    entrypoint: "tail -f /dev/null"
+    depends_on:
+      - caddy
+      - prometheus
+
+
 volumes:
   caddy_data:
   caddy_config:
 ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###
+  grafana-storage: # Named volume for Grafana data

@@ -5,50 +5,71 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Product\ProductModel;
-use App\Entity\Product\ProductState;
 use App\Repository\DiscountRepository;
-use App\Repository\ProductModelRepository;
 use App\Repository\ProductRepository;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Stopwatch\Stopwatch;
 
-readonly class ProductModelDataService
+#[AsAlias(ProductModelDataServiceInterface::class)]
+readonly class ProductModelDataService implements ProductModelDataServiceInterface
 {
     public function __construct(
-        private ProductRepository $productRepository,
-        private DiscountRepository $discountRepository,
+        protected ProductRepository $productRepository,
+        protected DiscountRepository $discountRepository,
+        protected Stopwatch $stopwatch,
     ) {
 
     }
 
     public function getData(ProductModel $model): array
     {
-        $stats = $this->productRepository->countProductsByState();
+        $this->stopwatch->lap('process-product-models-data');
 
-        $statePercentageModifier = min(...array_map(
-            fn ($stateData) => $stateData['state']->getPricePercentageModifier(),
-            array_filter(
-                $stats,
-                fn ($stateData) => $stateData['count'] > 0,
-            ),
-        ));
+        $statePercentageModifier = $this->calculateStatePercentageModifier($model);
 
-        $discount = $this->discountRepository->findHighestActiveDiscountForModel($model);
+        $basePrice = $this->calculateBasePrice($model, $statePercentageModifier);
 
-        $discountCoeff = (null !== $discount)
-            ? $discount->percentage / 100
-            : 0;
+        $discountCoeff = $this->calculateDiscountCoeff($model);
 
-        $basePrice = $model->rentPrice + ($model->rentPrice * ($statePercentageModifier / 100));
-        $price = round(
-            $basePrice - $basePrice * $discountCoeff,
-            2,
-        );
+        $price = $this->calculateFinalPrice($basePrice, $discountCoeff);
 
         return [
             'model' => $model,
             'origin_price' => $model->rentPrice,
             'price' => $price,
-            'discount' => $discount,
+            'discount' => $discountCoeff * 100,
             'state_percentage_modifier' => $statePercentageModifier,
         ];
+    }
+
+    /**
+     * @return float percentage modifier of the worst state available for the given `ProductModel`
+     */
+    private function calculateStatePercentageModifier(ProductModel $model): float
+    {
+        return min(...array_map(
+            fn ($stateData) => $stateData['state']->getPricePercentageModifier(),
+            array_filter(
+                $this->productRepository->countProductsByModelAndState($model),
+                fn ($stateData) => $stateData['count'] > 0,
+            ),
+        ));
+    }
+
+    private function calculateBasePrice(ProductModel $model, float $statePercentageModifier): float
+    {
+        return $model->rentPrice + ($model->rentPrice * ($statePercentageModifier / 100));
+    }
+
+    private function calculateDiscountCoeff(ProductModel $model): float
+    {
+        $discount = $this->discountRepository->findHighestActiveDiscountForModel($model);
+
+        return (null !== $discount) ? $discount->percentage / 100 : 0;
+    }
+
+    private function calculateFinalPrice(float $basePrice, float $discountCoeff): float
+    {
+        return $basePrice - ($basePrice * $discountCoeff);
     }
 }

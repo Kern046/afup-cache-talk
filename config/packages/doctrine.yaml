@@ -2,6 +2,8 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
 
+        result_cache: doctrine.result_cache_pool
+
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)
         #server_version: '16'
@@ -18,6 +20,46 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+        second_level_cache:
+            enabled: '%env(bool:APP_FEATURE_FLAG_ENABLE_DOCTRINE_SECOND_LEVEL_CACHE)%'
+            regions:
+                products:
+                    cache_driver:
+                        type: pool
+                        pool: doctrine.second_level_cache_pool
+                tags:
+                    cache_driver:
+                        type: pool
+                        pool: doctrine.second_level_cache_pool
+                discounts:
+                    cache_driver:
+                        type: pool
+                        pool: doctrine.second_level_cache_pool
+                product_models:
+                    cache_driver:
+                        type: pool
+                        pool: doctrine.second_level_cache_pool
+        metadata_cache_driver:
+            type: pool
+            pool: doctrine.metadata_cache_pool
+        query_cache_driver:
+            type: pool
+            pool: doctrine.query_cache_pool
+        result_cache_driver:
+            type: pool
+            pool: doctrine.result_cache_pool
+
+framework:
+    cache:
+        pools:
+            doctrine.metadata_cache_pool:
+                adapter: cache.adapter.apcu
+            doctrine.query_cache_pool:
+                adapter: cache.adapter.apcu
+            doctrine.result_cache_pool:
+                adapter: cache.adapter.apcu
+            doctrine.second_level_cache_pool:
+                adapter: cache.app
 
 when@test:
     doctrine:
@@ -28,8 +70,9 @@ when@test:
 when@prod:
     doctrine:
         orm:
-            auto_generate_proxy_classes: false
-            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+            metadata_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
             query_cache_driver:
                 type: pool
                 pool: doctrine.system_cache_pool

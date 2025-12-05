@@ -11,6 +11,7 @@ use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\Cache(usage: 'READ_ONLY', region: 'product_models')]
 class ProductModel
 {
     #[ORM\Id]

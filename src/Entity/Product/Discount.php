@@ -11,6 +11,7 @@ use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\Cache(usage: 'READ_ONLY', region: 'discounts')]
 class Discount
 {
     #[ORM\Id]
@@ -25,6 +26,7 @@ class Discount
         #[ORM\Column(type: 'text')]
         public string $description,
         #[ORM\ManyToMany(targetEntity: Tag::class)]
+        #[ORM\Cache(usage: 'READ_ONLY', region: 'discounts_tags_association')]
         public Collection $tags = new ArrayCollection(),
         #[ORM\Column]
         public int $percentage,
