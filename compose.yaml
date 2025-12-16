@@ -11,7 +11,7 @@ services:
       context: docker/fpm
     volumes:
         - ./:/srv/app
-        - ./docker/fpm/config/user_opcache.ini:/usr/local/etc/php/conf.d/user_opcache.ini:ro
+        # - ./docker/fpm/config/user_opcache.ini:/usr/local/etc/php/conf.d/user_opcache.ini:ro
 
 ###> doctrine/doctrine-bundle ###
   database:
@@ -33,7 +33,6 @@ services:
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
-
   caddy:
     container_name: cache_talk_caddy
     image: caddy

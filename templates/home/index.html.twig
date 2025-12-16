@@ -20,13 +20,15 @@
     </div>
 
     <div>
-        <h3>Tous nos modèles !</h3>
+        <header>
+            <h2>Tous nos modèles !</h2>
+        </header>
 
         <section>
             {% for data in models %}
                 {% set model = data.model %}
                 <div>
-                    <h5>{{ model.name }}</h5>
+                    <h4>{{ model.name }}</h4>
                     <h6>
                         à partir de <s>{{ data.origin_price }}</s> {{ data.price }} euros / jour
                         {% if data.discount is not null %}
@@ -41,6 +43,22 @@
                             Voir ce modèle
                         </button>
                     </a>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
+
+    <div>
+        <header>
+            <h2>Les promos en cours</h2>
+        </header>
+
+        <section>
+            {% for discount in active_discounts %}
+                <div>
+                    <h4>{{ discount.title }}</h4>
+
+                    <p>-{{ discount.percentage }}%</p>
                 </div>
             {% endfor %}
         </section>

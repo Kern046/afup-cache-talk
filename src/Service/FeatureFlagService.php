@@ -15,7 +15,7 @@ readonly class FeatureFlagService
     ) {
     }
 
-    public function isFeatureEnabled(FeatureFlag $featureFlag): bool
+    public function isEnabled(FeatureFlag $featureFlag): bool
     {
         return $this->featureFlags[$featureFlag->value] ?? false;
     }

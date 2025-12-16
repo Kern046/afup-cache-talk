@@ -7,6 +7,8 @@ namespace App\Repository;
 use App\Entity\Product\Product;
 use App\Entity\Product\ProductModel;
 use App\Entity\Product\ProductState;
+use App\Enum\FeatureFlag;
+use App\Service\FeatureFlagService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
@@ -14,7 +16,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class ProductRepository extends ServiceEntityRepository
 {
-    public function __construct(\Doctrine\Persistence\ManagerRegistry $registry)
+    public function __construct(\Doctrine\Persistence\ManagerRegistry $registry, private FeatureFlagService $featureFlagService)
     {
         parent::__construct($registry, Product::class);
     }
@@ -26,13 +28,16 @@ class ProductRepository extends ServiceEntityRepository
     {
         $resultCacheId = sprintf('product_counts_by_state_%s', $productModel->id->toBase32());
 
-        return $this->createQueryBuilder('p')
+        $query = $this->createQueryBuilder('p')
             ->select('p.state, COUNT(p.id) as count')
             ->groupBy('p.state')
-            ->getQuery()
-            ->enableResultCache(3600, $resultCacheId)
-            ->getResult()
-        ;
+            ->getQuery();
+
+        if ($this->featureFlagService->isEnabled(FeatureFlag::EnableDoctrineResultCache)) {
+            $query->enableResultCache(3600, $resultCacheId);
+        }
+
+        return $query->getResult();
     }
 
     public function searchAvailableProducts(\DateTimeImmutable $startDate, \DateTimeImmutable $endDate): array

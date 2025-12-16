@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Repository\ProductModelRepository;
 use App\Service\ProductModelDataService;
+use App\Service\ProductModelDataServiceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,7 +19,7 @@ class ViewModel extends AbstractController
     )]
     public function __invoke(
         ProductModelRepository $productModelRepository,
-        ProductModelDataService $productModelDataService,
+        ProductModelDataServiceInterface $productModelDataService,
         string $modelSlug,
     ): Response {
         $model = $productModelRepository->findOneBy(['slug' => $modelSlug])

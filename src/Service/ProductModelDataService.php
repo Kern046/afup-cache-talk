@@ -29,7 +29,9 @@ readonly class ProductModelDataService implements ProductModelDataServiceInterfa
 
         $basePrice = $this->calculateBasePrice($model, $statePercentageModifier);
 
-        $discountCoeff = $this->calculateDiscountCoeff($model);
+        $discount = $this->discountRepository->findHighestActiveDiscountForModel($model);
+
+        $discountCoeff = (null !== $discount) ? $discount->percentage / 100 : 0;
 
         $price = $this->calculateFinalPrice($basePrice, $discountCoeff);
 
@@ -37,7 +39,7 @@ readonly class ProductModelDataService implements ProductModelDataServiceInterfa
             'model' => $model,
             'origin_price' => $model->rentPrice,
             'price' => $price,
-            'discount' => $discountCoeff * 100,
+            'discount' => $discount,
             'state_percentage_modifier' => $statePercentageModifier,
         ];
     }
@@ -59,13 +61,6 @@ readonly class ProductModelDataService implements ProductModelDataServiceInterfa
     private function calculateBasePrice(ProductModel $model, float $statePercentageModifier): float
     {
         return $model->rentPrice + ($model->rentPrice * ($statePercentageModifier / 100));
-    }
-
-    private function calculateDiscountCoeff(ProductModel $model): float
-    {
-        $discount = $this->discountRepository->findHighestActiveDiscountForModel($model);
-
-        return (null !== $discount) ? $discount->percentage / 100 : 0;
     }
 
     private function calculateFinalPrice(float $basePrice, float $discountCoeff): float

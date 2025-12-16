@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Product\ProductModel;
+use App\Repository\DiscountRepository;
 use App\Repository\ProductModelRepository;
 use App\Service\ProductModelDataServiceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +17,7 @@ class HomeController extends AbstractController
 {
     #[Route('/', name: 'home')]
     public function __invoke(
+        DiscountRepository $discountRepository,
         ProductModelRepository $productModelRepository,
         ProductModelDataServiceInterface $productModelDataService,
         Stopwatch $stopwatch,
@@ -35,8 +37,19 @@ class HomeController extends AbstractController
 
         $stopwatch->stop('process-product-models-data');
 
-        return $this->render('home/index.html.twig', [
-           'models' => $models,
-       ]);
+        return $this->render(
+            'home/index.html.twig',
+            [
+                'models' => $models,
+                'active_discounts' => $discountRepository->getAllActiveDiscounts(),
+            ],
+            response: new Response()
+                ->setCache([
+                    'max_age' => 0,
+                    's_maxage' => 60,
+                    'stale_while_revalidate' => 30,
+                    'stale_if_error' => 600,
+                ]),
+        );
     }
 }

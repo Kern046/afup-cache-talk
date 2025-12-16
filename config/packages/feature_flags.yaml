@@ -1,3 +1,5 @@
 feature_flags:
   enable_applicative_cache: '%env(bool:APP_FEATURE_FLAG_ENABLE_APPLICATIVE_CACHE)%'
+  enable_doctrine_result_cache: '%env(bool:APP_FEATURE_FLAG_ENABLE_DOCTRINE_RESULT_CACHE)%'
+  enable_doctrine_second_level_cache: '%env(bool:APP_FEATURE_FLAG_ENABLE_DOCTRINE_SECOND_LEVEL_CACHE)%'
   enable_http_cache: '%env(bool:APP_FEATURE_FLAG_ENABLE_HTTP_CACHE)%'
